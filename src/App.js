@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, ProgressBar, Alert } from 'react-bootstrap';
-import { FaCloudUploadAlt, FaImage, FaImages } from 'react-icons/fa';
+import { Container, Row, Tab, Tabs, Col, Card, Button, ProgressBar, Alert, Nav, Navbar, Modal } from 'react-bootstrap';
+import { FaCloudUploadAlt, FaImage, FaArrowLeft, FaImages, FaQuestionCircle, FaCog, FaUser } from 'react-icons/fa';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -9,6 +9,9 @@ function App() {
   const [collection, setCollection] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [theme, setTheme] = useState('dark');
 
   const handleChoiceChange = (selectedChoice) => {
     setChoice(selectedChoice);
@@ -19,35 +22,85 @@ function App() {
   };
 
   return (
-    <Container fluid className="bg-dark min-vh-100 d-flex flex-column">
-      <Row className="justify-content-center my-auto">
-        <Col xs={12} md={8} lg={6}>
-          <Card className="shadow-lg">
-            <Card.Header className="bg-secondary text-white">
-              <h1 className="text-center mb-0">
+    <Container fluid className={`bg-${theme} min-vh-100 d-flex flex-column p-0`}>
+      <Navbar bg={theme} variant={theme} expand="lg" className="mb-3">
+        <Container>
+          <Navbar.Brand href="#home" className="text-light">
+            <FaCloudUploadAlt className="me-2" />
+            Image Upload App
+          </Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="ms-auto">
+              <Nav.Link href="#" onClick={() => setShowHelpModal(true)} className="text-light">
+                <FaQuestionCircle className="me-1" /> Help
+              </Nav.Link>
+              <Nav.Link href="#" onClick={() => setShowSettingsModal(true)} className="text-light">
+                <FaCog className="me-1" /> Settings
+              </Nav.Link>
+              <Nav.Link href="#" className="text-light">
+                <FaUser className="me-1" /> Profile
+              </Nav.Link>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+
+      <Row className="justify-content-center my-4 flex-grow-1">
+        <Col xs={12} md={10} lg={8} xl={6}>
+          <Card className={`shadow-lg bg-${theme === 'dark' ? 'light' : 'light'}`}>
+            <Card.Header className={`bg-${theme === 'dark' ? 'dark' : 'primary'} text-white`}>
+              <h2 className="text-center mb-0">
                 <FaCloudUploadAlt className="me-2" />
-                Image Upload App
-              </h1>
+                Upload Your Content
+              </h2>
             </Card.Header>
             <Card.Body className="p-4">
-              {!choice && <UploadOptions onChoiceChange={handleChoiceChange} />}
-              {choice === 'image' && (
-                <UploadImage
-                  image={image}
-                  setImage={setImage}
-                  setUploadProgress={setUploadProgress}
-                  setUploadStatus={setUploadStatus}
-                />
-              )}
-              {choice === 'collection' && (
-                <UploadImageCollection
-                  image={image}
-                  setImage={setImage}
-                  collection={collection}
-                  setCollection={setCollection}
-                  setUploadProgress={setUploadProgress}
-                  setUploadStatus={setUploadStatus}
-                />
+              {!choice ? (
+                <Tabs
+                  defaultActiveKey="single"
+                  id="upload-options-tabs"
+                  className="mb-3"
+                  fill
+                >
+                  <Tab eventKey="single" title={<><FaImage className="me-2" />Single Image</>}>
+                    <UploadOptions onChoiceChange={handleChoiceChange} option="image" theme={theme} />
+                  </Tab>
+                  <Tab eventKey="collection" title={<><FaImages className="me-2" />Image Collection</>}>
+                    <UploadOptions onChoiceChange={handleChoiceChange} option="collection" theme={theme} />
+                  </Tab>
+                </Tabs>
+              ) : (
+                <>
+                  <Button
+                    variant={theme === 'dark' ? 'outline-info' : 'outline-primary'}
+                    onClick={() => handleChoiceChange(null)}
+                    className="mb-3"
+                  >
+                    <FaArrowLeft className="me-2" />
+                    Back to Options
+                  </Button>
+                  {choice === 'image' && (
+                    <UploadImage
+                      image={image}
+                      setImage={setImage}
+                      setUploadProgress={setUploadProgress}
+                      setUploadStatus={setUploadStatus}
+                      theme={theme}
+                    />
+                  )}
+                  {choice === 'collection' && (
+                    <UploadImageCollection
+                      image={image}
+                      setImage={setImage}
+                      collection={collection}
+                      setCollection={setCollection}
+                      setUploadProgress={setUploadProgress}
+                      setUploadStatus={setUploadStatus}
+                      theme={theme}
+                    />
+                  )}
+                </>
               )}
               {uploadProgress > 0 && (
                 <ProgressBar
@@ -55,6 +108,7 @@ function App() {
                   now={uploadProgress}
                   label={`${uploadProgress}%`}
                   className="mt-3"
+                  variant={theme === 'dark' ? 'info' : 'primary'}
                 />
               )}
               {uploadStatus && (
@@ -66,18 +120,46 @@ function App() {
                 </Alert>
               )}
             </Card.Body>
-            <Card.Footer className="text-center">
-              <Button
-                variant="outline-secondary"
-                onClick={() => handleChoiceChange(null)}
-                className="mt-2"
-              >
-                Back to Options
-              </Button>
-            </Card.Footer>
           </Card>
         </Col>
       </Row>
+
+      <footer className={`bg-${theme === 'dark' ? 'secondary' : 'light'} text-center py-3 mt-auto`}>
+        <p className={`mb-0 ${theme === 'dark' ? 'text-light' : 'text-dark'}`}>
+          &copy; 2023 Image Upload App. All rights reserved.
+        </p>
+      </footer>
+
+      <Modal show={showHelpModal} onHide={() => setShowHelpModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Help</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <h5>How to use the Image Upload App:</h5>
+          <ol>
+            <li>Choose between uploading a single image or an image with a collection.</li>
+            <li>Select your file(s) using the file input.</li>
+            <li>Preview your selection.</li>
+            <li>Click the upload button to start the process.</li>
+            <li>Wait for the upload to complete and check the status message.</li>
+          </ol>
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showSettingsModal} onHide={() => setShowSettingsModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Settings</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <h5>Theme</h5>
+          <Button
+            variant={theme === 'dark' ? 'light' : 'dark'}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode
+          </Button>
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 }
